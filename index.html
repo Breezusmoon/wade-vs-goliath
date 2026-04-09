@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Wade vs Goliath 🪨</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@800;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; touch-action:manipulation; }
+body {
+  background:#0d1b2a; font-family:'Nunito',sans-serif;
+  overflow:hidden; height:100dvh;
+  display:flex; align-items:center; justify-content:center;
+  user-select:none;
+}
+canvas { display:block; max-width:100vw; max-height:100dvh; }
+
+.screen {
+  position:fixed; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:20px; text-align:center; z-index:100;
+  transition:opacity 0.35s;
+}
+.screen.hidden { opacity:0; pointer-events:none; }
+
+#intro { background:radial-gradient(ellipse at 50% 30%, #0d2a4a, #050d1a 75%); }
+.live-tag {
+  display:inline-block; background:linear-gradient(135deg,#FFD700,#FF8C00);
+  color:#1a0800; font-size:0.75rem; font-weight:900;
+  letter-spacing:0.15em; text-transform:uppercase;
+  padding:5px 18px; border-radius:50px; margin-bottom:14px;
+  box-shadow:0 4px 18px rgba(255,180,0,0.5);
+  animation:tagBob 2s ease-in-out infinite;
+}
+@keyframes tagBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.game-title {
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(2.8rem,10vw,5.5rem);
+  line-height:1; margin-bottom:4px;
+  background:linear-gradient(135deg,#FFD700,#FF8C00,#FFD700);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  filter:drop-shadow(0 0 25px rgba(255,180,0,0.5));
+  animation:titleGlow 3s ease-in-out infinite;
+}
+@keyframes titleGlow{0%,100%{filter:drop-shadow(0 0 18px rgba(255,180,0,0.4))}50%{filter:drop-shadow(0 0 42px rgba(255,215,0,0.95))}}
+.game-sub{font-family:'Fredoka One',cursive;font-size:clamp(1rem,3.5vw,1.6rem);color:rgba(255,255,255,0.5);margin-bottom:16px;}
+.chars-row{font-size:clamp(2rem,6vw,2.8rem);margin-bottom:16px;animation:charWiggle 2s ease-in-out infinite;}
+@keyframes charWiggle{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.briefing {
+  background:rgba(255,255,255,0.06); border:2px solid rgba(255,215,0,0.2);
+  border-radius:20px; padding:14px 22px; max-width:440px; margin-bottom:20px;
+  font-size:clamp(0.88rem,2.8vw,1rem); font-weight:800;
+  color:rgba(255,255,255,0.82); line-height:1.7;
+}
+.briefing strong{color:#FFD700;}
+.play-btn {
+  background:linear-gradient(135deg,#FFD700,#FF8C00); color:#1a0800;
+  border:none; border-radius:20px; padding:17px 50px;
+  font-family:'Fredoka One',cursive; font-size:clamp(1.2rem,4.5vw,1.9rem);
+  cursor:pointer; box-shadow:0 8px 30px rgba(255,180,0,0.4);
+  animation:playPulse 1.5s ease-in-out infinite; transition:transform 0.15s;
+}
+.play-btn:hover{transform:scale(1.05);}.play-btn:active{transform:scale(0.96);}
+@keyframes playPulse{0%,100%{box-shadow:0 8px 30px rgba(255,180,0,0.4),0 0 0 0 rgba(255,215,0,0.2)}50%{box-shadow:0 10px 40px rgba(255,180,0,0.7),0 0 0 16px rgba(255,215,0,0)}}
+
+#level-screen{background:radial-gradient(ellipse at 50% 35%, #0d2a4a, #050d1a 70%);}
+.level-badge{display:inline-block;border-radius:50px;padding:6px 22px;margin-bottom:14px;font-family:'Fredoka One',cursive;font-size:0.8rem;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;}
+.level-title{font-family:'Fredoka One',cursive;font-size:clamp(2rem,8vw,4rem);background:linear-gradient(135deg,#FFD700,#ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 25px rgba(255,215,0,0.7));margin-bottom:8px;animation:winPop 0.7s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes winPop{from{transform:scale(0.2) rotate(-10deg);opacity:0}to{transform:scale(1);opacity:1}}
+.verse-box{background:rgba(255,255,255,0.06);border:2px solid rgba(255,215,0,0.3);border-radius:18px;padding:16px 22px;max-width:460px;margin:14px 0;font-size:clamp(0.88rem,2.8vw,1.05rem);font-weight:800;color:rgba(255,255,255,0.88);line-height:1.7;font-style:italic;}
+.verse-ref{color:#FFD700;font-style:normal;font-size:0.82rem;margin-top:6px;display:block;}
+.next-btn{background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a0800;border:none;border-radius:18px;padding:15px 44px;font-family:'Fredoka One',cursive;font-size:clamp(1.1rem,4vw,1.7rem);cursor:pointer;box-shadow:0 6px 24px rgba(255,180,0,0.4);transition:all 0.15s;margin-top:10px;}
+.next-btn:hover{transform:scale(1.06);}.next-btn:active{transform:scale(0.96);}
+
+#win-screen{background:radial-gradient(ellipse at 50% 35%, #0d2a4a, #050d1a 70%);}
+#lose-screen{background:radial-gradient(ellipse at 50% 35%, #0d2a4a, #050d1a 70%);}
+.lose-title{font-family:'Fredoka One',cursive;font-size:clamp(2rem,7.5vw,3.8rem);color:#66aaff;text-shadow:0 0 24px rgba(100,170,255,0.5);margin-bottom:10px;animation:winPop 0.5s ease;}
+.action-btn{border:none;border-radius:18px;padding:15px 44px;font-family:'Fredoka One',cursive;font-size:clamp(1.1rem,4vw,1.7rem);cursor:pointer;transition:all 0.15s;margin-top:14px;}
+.btn-gold{background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a0800;box-shadow:0 6px 24px rgba(255,180,0,0.4);}
+.btn-blue{background:linear-gradient(135deg,#4488ff,#0044cc);color:white;box-shadow:0 6px 24px rgba(68,136,255,0.4);}
+.action-btn:hover{transform:scale(1.06);}.action-btn:active{transform:scale(0.96);}
+
+#hud{position:fixed;top:0;left:0;right:0;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;z-index:50;pointer-events:none;background:linear-gradient(180deg,rgba(0,20,60,0.75),transparent);}
+#hud.hidden{display:none;}
+.hud-lives{font-family:'Fredoka One',cursive;font-size:1rem;color:#FFD700;}
+.hud-level{font-family:'Fredoka One',cursive;font-size:0.9rem;color:#88ccff;}
+
+#controls{position:fixed;bottom:0;left:0;right:0;height:88px;display:flex;z-index:50;pointer-events:none;}
+#controls.hidden{display:none;}
+.ctrl-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.8rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);cursor:pointer;pointer-events:all;transition:background 0.1s;-webkit-tap-highlight-color:transparent;}
+.ctrl-btn:active{background:rgba(255,255,255,0.15);}
+.ctrl-fire{background:rgba(255,215,0,0.08);border-color:rgba(255,215,0,0.2);}
+.ctrl-fire:active{background:rgba(255,215,0,0.25);}
+.ctrl-label{font-family:'Fredoka One',cursive;font-size:0.6rem;color:rgba(255,255,255,0.4);margin-top:2px;}
+
+#particles{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden;}
+.particle{position:absolute;border-radius:50%;animation:pFly linear forwards;}
+@keyframes pFly{from{transform:translate(0,0) scale(1);opacity:1}to{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+.confetti{position:absolute;animation:cFall linear forwards;}
+@keyframes cFall{from{transform:translateY(-20px) rotate(0deg);opacity:1}to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div id="intro" class="screen">
+  <div class="live-tag">⭐ FROM UNCLE CRIP 🇦🇺 — GOLD COAST ⭐</div>
+  <div class="game-title">WADE VS<br>GOLIATH</div>
+  <div class="game-sub">⚔️ The Bible Sword Adventure ⚔️</div>
+  <div class="chars-row">🌟 ⚔️ ✝️ 🦁 ✝️ ⚔️ 🌟</div>
+  <div class="briefing">
+    <strong>YO WADE! 👋</strong><br>
+    You're David — God's chosen warrior with a sword AND slingshot!<br>
+    3 levels of dragons to face! 🐉<br><br>
+    📱 <strong>Phone:</strong> ⬅️ Move &nbsp;|&nbsp; 🪨 FIRE &nbsp;|&nbsp; ➡️ Move<br>
+    💻 <strong>Computer:</strong> A/D or arrows to move, SPACE to fire<br><br>
+    Watch the <strong>POWER BAR</strong> — fire when it's full! ⚡
+  </div>
+  <button class="play-btn" id="play-btn">⚔️ START THE ADVENTURE!</button>
+</div>
+
+<!-- LEVEL COMPLETE -->
+<div id="level-screen" class="screen hidden">
+  <div class="level-badge" id="level-badge">✨ LEVEL 1 COMPLETE ✨</div>
+  <div style="font-size:clamp(2.8rem,9vw,4.5rem);animation:winPop 0.5s ease;" id="level-emoji">🎉🏆🎉</div>
+  <div class="level-title" id="level-title">DRAGON TAMED!</div>
+  <div class="verse-box" id="level-verse"></div>
+  <div style="font-size:clamp(1.6rem,5vw,2.4rem);animation:charWiggle 2s ease-in-out infinite;margin-bottom:10px;" id="level-chars">🦕 🦘 👑 🌟 ✝️</div>
+  <button class="next-btn" id="next-btn">➡️ NEXT LEVEL!</button>
+</div>
+
+<!-- WIN ALL -->
+<div id="win-screen" class="screen hidden">
+  <div style="font-size:clamp(2.8rem,9vw,4.5rem);animation:winPop 0.5s ease;">🎉✝️👑✝️🎉</div>
+  <div class="level-title" style="font-size:clamp(2.2rem,8vw,4.2rem);">YOU BEAT THEM ALL!</div>
+  <div style="font-family:'Fredoka One',cursive;font-size:clamp(0.95rem,3.5vw,1.4rem);color:rgba(255,255,255,0.55);margin-bottom:4px;">CHAMPION OF CHAMPIONS — AGENT WADE! 👑</div>
+  <div class="verse-box">
+    "I can do all things through Christ who strengthens me."
+    <span class="verse-ref">— Philippians 4:13</span>
+    <br><br>
+    <strong style="color:#FFD700;">You are a CHAMPION Wade — just like David! ❤️</strong><br>
+    <span style="color:rgba(255,255,255,0.4);font-size:0.82rem;">So proud of you — Love from Uncle Crip 🇦🇺 🦘</span>
+  </div>
+  <div style="font-size:clamp(1.8rem,6vw,2.8rem);animation:charWiggle 2s ease-in-out infinite;margin-bottom:14px;">🦕 🦘 👑 🌟 ✝️ 🎖️</div>
+  <button class="action-btn btn-gold" id="win-replay-btn">🪨 PLAY AGAIN!</button>
+</div>
+
+<!-- LOSE -->
+<div id="lose-screen" class="screen hidden">
+  <div style="font-size:clamp(2.4rem,8vw,4rem);">🐉 😮 🐉</div>
+  <div class="lose-title">THAT WAS CLOSE!</div>
+  <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:clamp(0.95rem,3vw,1.25rem);color:rgba(255,255,255,0.65);margin-bottom:6px;">
+    "Be strong and courageous!" — Joshua 1:9 💪<br>
+    <span style="color:#FFD700;">Try again Agent Wade — God is with you!</span>
+  </div>
+  <div style="font-size:clamp(1.8rem,6vw,2.4rem);margin:10px 0;">⚔️ 😤 ⚔️</div>
+  <button class="action-btn btn-blue" id="lose-replay-btn">💪 TRY AGAIN!</button>
+</div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div class="hud-lives" id="hud-lives">❤️❤️❤️</div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+    <div style="width:110px;height:11px;background:rgba(255,255,255,0.1);border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,0.18);">
+      <div id="power-fill" style="height:100%;width:50%;background:linear-gradient(90deg,#00cc88,#FFD700,#FF4500);border-radius:6px;transition:width 0.03s;"></div>
+    </div>
+    <div style="font-family:'Fredoka One',cursive;font-size:0.65rem;color:rgba(255,255,255,0.35);">POWER — fire when HIGH!</div>
+  </div>
+  <div style="text-align:right;">
+    <div class="hud-level" id="hud-level">LEVEL 1</div>
+    <div id="hud-hits" style="font-family:'Fredoka One',cursive;font-size:0.8rem;color:#aaddff;">HITS: 0</div>
+  </div>
+</div>
+
+<!-- MOBILE CONTROLS -->
+<div id="controls" class="hidden">
+  <div class="ctrl-btn" id="btn-left">⬅️<div class="ctrl-label">MOVE</div></div>
+  <div class="ctrl-btn ctrl-fire" id="btn-fire">🪨<div class="ctrl-label">FIRE!</div></div>
+  <div class="ctrl-btn" id="btn-right">➡️<div class="ctrl-label">MOVE</div></div>
+</div>
+
+<canvas id="c"></canvas>
+<div id="particles"></div>
+
+<script>
+// ══════════════════════════════
+// LEVEL CONFIG
+// ══════════════════════════════
+const LEVELS = [
+  {
+    num:1, name:'THE VALLEY',
+    hitsNeeded:1, dragonSpd:0.009, dragonSize:1.0,
+    skyTop:'#050d1a', skyMid:'#0d2a55', skyBot:'#1a5fd0',
+    hillColor:'#0a1825', groundTop:'#1a3a20', groundBot:'#060e08',
+    emoji:'🎉🏆🎉', badge:'✨ LEVEL 1 COMPLETE ✨',
+    badgeColor:'linear-gradient(135deg,#4488ff,#0055cc)', badgeTextColor:'white',
+    title:'GOLIATH TAMED!', chars:'🦕 🦘 🌟 ✝️ 🌟',
+    verse:'"Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go."',
+    verseRef:'— Joshua 1:9',
+    message:'Just like David, you were brave enough to try! 🌟',
+    nextLabel:'⚔️ LEVEL 2 — BRING IT ON!'
+  },
+  {
+    num:2, name:'THE MOUNTAIN',
+    hitsNeeded:2, dragonSpd:0.016, dragonSize:0.82,
+    skyTop:'#0a0520', skyMid:'#2a1060', skyBot:'#4422aa',
+    hillColor:'#150a28', groundTop:'#1a1030', groundBot:'#080510',
+    emoji:'⭐🏆⭐', badge:'🌟 LEVEL 2 COMPLETE 🌟',
+    badgeColor:'linear-gradient(135deg,#aa44ff,#6600cc)', badgeTextColor:'white',
+    title:'DOUBLE TAMED!', chars:'🦁 ⚔️ 🌟 ✝️ 🌟',
+    verse:'"The Lord is my shepherd; I shall not want. He makes me lie down in green pastures."',
+    verseRef:'— Psalm 23:1-2',
+    message:'Two hits — you are INCREDIBLE Wade! 👑',
+    nextLabel:'🔥 LEVEL 3 — FINAL BATTLE!'
+  },
+  {
+    num:3, name:'THE HEAVENS',
+    hitsNeeded:3, dragonSpd:0.025, dragonSize:0.68,
+    skyTop:'#0a0010', skyMid:'#1a0040', skyBot:'#3300aa',
+    hillColor:'#0f0020', groundTop:'#0f0828', groundBot:'#040008',
+    emoji:'👑🏆👑', badge:'🔥 CHAMPION! 🔥',
+    badgeColor:'linear-gradient(135deg,#FFD700,#FF4500)', badgeTextColor:'#1a0800',
+    title:'TRIPLE TAMED!', chars:'👑 ⭐ ✝️ ⭐ 👑',
+    verse:'"I can do all things through Christ who strengthens me."',
+    verseRef:'— Philippians 4:13',
+    message:'You did it Wade — YOU ARE A CHAMPION! 🎖️',
+    nextLabel:'🏆 SEE YOUR TROPHY!'
+  }
+];
+
+// ══════════════════════════════
+// CANVAS
+// ══════════════════════════════
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+let W, H;
+function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+resize();
+window.addEventListener('resize',()=>{ resize(); if(running) buildScene(); });
+
+// ══════════════════════════════
+// STATE
+// ══════════════════════════════
+let running=false, phase='idle', lives=3, raf=null;
+let currentLevel=0;
+let dragonHits=0;
+let powerVal=50, powerDir=1, powerSpd=1.1;
+const keys={};
+let moveLeft=false, moveRight=false;
+let david, dragon, stones=[], stars2=[], bgClouds=[], goldenMotes=[];
+let dustClouds=[], fireParticles=[];
+let screenShake=0, hitFlash=0, dragonStunned=0;
+let dragonAngle=0, dragonRadius=0, dragonCX=0, dragonCY=0;
+let dragonWing=0, dragonWingDir=1;
+let tauntTimer=0, tauntText='ROAAAR! 🐉';
+let haloSpin=0, swordSwing=0, swordSwingDir=1;
+
+const TAUNTS=['ROAAAR! 🐉','HEH HEH! 😄','CATCH ME! 🐉','WOOOOSH! 💨','WHEEE! 🐉','TOO FAST! ⚡'];
+
+// ══════════════════════════════
+// BUTTONS — use data attributes to avoid onclick conflicts
+// ══════════════════════════════
+document.getElementById('play-btn').addEventListener('click', ()=>{ currentLevel=0; lives=3; startLevel(); });
+document.getElementById('win-replay-btn').addEventListener('click', ()=>{ currentLevel=0; lives=3; startLevel(); });
+document.getElementById('lose-replay-btn').addEventListener('click', ()=>{ lives=3; dragonHits=0; startLevel(); });
+
+// next-btn: single listener, checks currentLevel at click time
+document.getElementById('next-btn').addEventListener('click', ()=>{
+  if(currentLevel >= LEVELS.length-1){
+    showScreen('win-screen');
+  } else {
+    currentLevel++;
+    startLevel();
+  }
+});
+
+// mobile controls
+['touchstart','mousedown'].forEach(ev=>{
+  document.getElementById('btn-left').addEventListener(ev,  ()=>moveLeft=true,  {passive:true});
+  document.getElementById('btn-right').addEventListener(ev, ()=>moveRight=true, {passive:true});
+  document.getElementById('btn-fire').addEventListener(ev,  fireStone,          {passive:true});
+});
+['touchend','mouseup'].forEach(ev=>{
+  document.getElementById('btn-left').addEventListener(ev,  ()=>moveLeft=false,  {passive:true});
+  document.getElementById('btn-right').addEventListener(ev, ()=>moveRight=false, {passive:true});
+});
+
+window.addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if((e.code==='Space'||e.code==='ArrowUp')&&running&&phase==='playing'){ e.preventDefault(); fireStone(); }
+});
+window.addEventListener('keyup',e=>{ keys[e.code]=false; });
+
+// ══════════════════════════════
+// SCREENS
+// ══════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  document.getElementById('hud').classList.add('hidden');
+  document.getElementById('controls').classList.add('hidden');
+  if(id){
+    document.getElementById(id).classList.remove('hidden');
+  } else {
+    document.getElementById('hud').classList.remove('hidden');
+    document.getElementById('controls').classList.remove('hidden');
+  }
+}
+
+function showLevelComplete(){
+  const lv = LEVELS[currentLevel];
+  document.getElementById('level-badge').textContent   = lv.badge;
+  document.getElementById('level-badge').style.background  = lv.badgeColor;
+  document.getElementById('level-badge').style.color        = lv.badgeTextColor;
+  document.getElementById('level-emoji').textContent   = lv.emoji;
+  document.getElementById('level-title').textContent   = lv.title;
+  document.getElementById('level-chars').textContent   = lv.chars;
+  document.getElementById('level-verse').innerHTML     =
+    `${lv.verse}<span class="verse-ref">${lv.verseRef}</span><br><br>` +
+    `<strong style="color:#FFD700;">${lv.message}</strong><br>` +
+    `<span style="color:rgba(255,255,255,0.4);font-size:0.82rem;">Love from Uncle Crip 🇦🇺 🦘</span>`;
+  // update next button label only — the click handler reads currentLevel dynamically
+  const nb = document.getElementById('next-btn');
+  if(currentLevel >= LEVELS.length-1){
+    nb.textContent = '🏆 SEE YOUR TROPHY!';
+  } else {
+    nb.textContent = lv.nextLabel;
+  }
+  spawnConfetti();
+  showScreen('level-screen');
+}
+
+// ══════════════════════════════
+// START LEVEL
+// ══════════════════════════════
+function startLevel(){
+  const lv = LEVELS[currentLevel];
+  dragonHits = 0;
+  showScreen(null);
+  running = true;
+  buildScene();
+  if(raf){ cancelAnimationFrame(raf); raf=null; }
+  document.getElementById('hud-level').textContent = 'LVL '+lv.num+' — '+lv.name;
+  document.getElementById('hud-hits').textContent  = 'HITS: 0/'+lv.hitsNeeded;
+  updateHUD();
+  phase = 'playing';
+  loop();
+}
+
+function buildScene(){
+  const lv = LEVELS[currentLevel];
+  const gY = H*0.80;
+
+  stars2 = Array.from({length:90},()=>({
+    x:Math.random()*W, y:Math.random()*gY*.95,
+    r:Math.random()*1.6+0.3,
+    twinkle:Math.random()*Math.PI*2, spd:Math.random()*.022+.008
+  }));
+
+  bgClouds = Array.from({length:5},(_,i)=>({
+    x:(i/5)*W*1.3-60, y:H*.06+Math.random()*H*.28,
+    w:100+Math.random()*120, h:36+Math.random()*44,
+    spd:.18+Math.random()*.18, alpha:.12+Math.random()*.14
+  }));
+
+  goldenMotes = Array.from({length:18},()=>({
+    x:Math.random()*W, y:H*.2+Math.random()*H*.55,
+    vy:-(0.25+Math.random()*.4), r:1.5+Math.random()*2.5,
+    alpha:Math.random()*.4+.1, twinkle:Math.random()*Math.PI*2
+  }));
+
+  const dw=Math.max(36,W*.062), dh=Math.max(64,W*.11);
+  david = { x:W*.5, y:gY, w:dw, h:dh, spd:W*.006, slingSpin:0, bobOffset:0, groundY:gY, facing:1 };
+
+  dragonCX = W*.5; dragonCY = H*.30;
+  dragonRadius = Math.min(W*.3,H*.22);
+  dragonAngle  = 0;
+  dragonStunned = 0;
+  const drw = Math.max(90,W*.18)*lv.dragonSize;
+  dragon = { x:dragonCX+dragonRadius, y:dragonCY, w:drw, h:drw };
+
+  stones=[]; dustClouds=[]; fireParticles=[];
+  screenShake=0; hitFlash=0; haloSpin=0; swordSwing=0; swordSwingDir=1;
+  dragonWing=0; dragonWingDir=1;
+  powerVal=50; powerDir=1;
+  tauntTimer=120; tauntText=TAUNTS[0];
+  document.getElementById('power-fill').style.width='50%';
+}
+
+function updateHUD(){
+  document.getElementById('hud-lives').textContent='❤️'.repeat(lives)+'🤍'.repeat(Math.max(0,3-lives));
+}
+
+// ══════════════════════════════
+// FIRE
+// ══════════════════════════════
+function fireStone(){
+  if(!running||phase!=='playing') return;
+  const sx=david.x, sy=david.y-david.h*.72;
+  const tx=dragon.x, ty=dragon.y;
+  const dist=Math.hypot(tx-sx,ty-sy)||1;
+  const spd=10+powerVal*.09;
+  stones.push({
+    x:sx, y:sy,
+    vx:(tx-sx)/dist*spd, vy:(ty-sy)/dist*spd-2,
+    r:Math.max(9,W*.015), spin:0, life:200
+  });
+  // sword swing animation
+  swordSwing = -1.2;
+}
+
+// ══════════════════════════════
+// LOOP
+// ══════════════════════════════
+function loop(){
+  if(!running) return;
+  update(); draw();
+  raf = requestAnimationFrame(loop);
+}
+
+// ══════════════════════════════
+// UPDATE
+// ══════════════════════════════
+function update(){
+  const t   = Date.now()*.001;
+  const lv  = LEVELS[currentLevel];
+  if(screenShake>0) screenShake*=.82;
+  if(hitFlash>0)    hitFlash--;
+  if(dragonStunned>0) dragonStunned--;
+  haloSpin += .022;
+
+  // sword swing recovery
+  if(swordSwing < 0.3){ swordSwing += 0.08; }
+
+  // power bar
+  powerVal += powerDir*powerSpd;
+  if(powerVal>=100){powerVal=100;powerDir=-1;}
+  if(powerVal<=0)  {powerVal=0;  powerDir= 1;}
+  document.getElementById('power-fill').style.width=powerVal+'%';
+
+  // environment
+  stars2.forEach(s=>s.twinkle+=s.spd);
+  bgClouds.forEach(c=>{ c.x+=c.spd; if(c.x>W+c.w) c.x=-c.w; });
+  goldenMotes.forEach(p=>{ p.y+=p.vy; p.twinkle+=.04; p.alpha=.12+Math.sin(p.twinkle)*.22; if(p.y<-10){p.y=H*.9;p.x=Math.random()*W;} });
+
+  // dragon wing
+  dragonWing += .15*dragonWingDir;
+  if(Math.abs(dragonWing)>1) dragonWingDir*=-1;
+
+  // dragon orbit
+  if(dragonStunned<=0){
+    dragonAngle += lv.dragonSpd;
+    dragon.x = dragonCX + Math.cos(dragonAngle)*dragonRadius;
+    dragon.y = dragonCY + Math.sin(dragonAngle)*dragonRadius*.55;
+  }
+
+  // ── REAL FIRE BREATH ──
+  // dragon breathes fire in the direction it's moving (toward david)
+  if(dragonStunned<=0 && Math.random()<0.15){
+    // direction vector toward david
+    const dx = david.x - dragon.x;
+    const dy = david.y - dragon.y;
+    const dd = Math.hypot(dx,dy)||1;
+    const nx = dx/dd, ny = dy/dd;
+    for(let i=0;i<4;i++){
+      const spread = (Math.random()-.5)*0.5;
+      const spd    = 3+Math.random()*5;
+      const cos_a  = Math.cos(Math.atan2(ny,nx)+spread);
+      const sin_a  = Math.sin(Math.atan2(ny,nx)+spread);
+      fireParticles.push({
+        x: dragon.x + nx*dragon.w*.5,
+        y: dragon.y + ny*dragon.h*.3,
+        vx: cos_a*spd, vy: sin_a*spd,
+        r: 6+Math.random()*10,
+        alpha:1, life:60+Math.random()*30,
+        maxLife:60+Math.random()*30,
+        color:['#FF4500','#FF8C00','#FFD700','#FF2200','#FF6600'][Math.floor(Math.random()*5)]
+      });
+    }
+  }
+  fireParticles.forEach(fp=>{
+    fp.x+=fp.vx; fp.y+=fp.vy;
+    fp.vx*=0.95; fp.vy*=0.95;
+    fp.r+=0.4; fp.alpha-=1/fp.life; fp.life--;
+  });
+  fireParticles=fireParticles.filter(fp=>fp.life>0);
+
+  // taunt
+  tauntTimer--;
+  if(tauntTimer<=0){
+    dragon.tauntIdx=((dragon.tauntIdx||0)+1)%TAUNTS.length;
+    tauntText=TAUNTS[dragon.tauntIdx]; tauntTimer=200;
+  }
+
+  // david movement
+  david.slingSpin+=.1;
+  david.bobOffset=Math.sin(t*2.5)*2.5;
+  if(keys['ArrowLeft']||keys['KeyA']||moveLeft){  david.x=Math.max(david.w*.5,david.x-david.spd); david.facing=-1; }
+  if(keys['ArrowRight']||keys['KeyD']||moveRight){ david.x=Math.min(W-david.w*.5,david.x+david.spd); david.facing= 1; }
+
+  // stones
+  for(let i=stones.length-1;i>=0;i--){
+    const s=stones[i];
+    s.spin+=.32; s.x+=s.vx; s.y+=s.vy; s.vy+=.1; s.life--;
+
+    const inX=s.x>dragon.x-dragon.w*.55&&s.x<dragon.x+dragon.w*.55;
+    const inY=s.y>dragon.y-dragon.h*.65&&s.y<dragon.y+dragon.h*.5;
+    if(inX&&inY&&s.life>0){
+      s.life=0;
+      dragonHits++;
+      document.getElementById('hud-hits').textContent='HITS: '+dragonHits+'/'+lv.hitsNeeded;
+      screenShake=14; hitFlash=20; dragonStunned=50;
+      spawnImpactParticles(dragon.x,dragon.y);
+      for(let j=0;j<14;j++){
+        const ang=Math.random()*Math.PI*2,spd=1.5+Math.random()*5;
+        dustClouds.push({x:dragon.x,y:dragon.y,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,r:8+Math.random()*18,alpha:.9,color:['#88ccff','#aaddff','#ffffff','#FFD700'][Math.floor(Math.random()*4)]});
+      }
+      if(dragonHits>=lv.hitsNeeded){
+        phase='done'; running=false;
+        setTimeout(()=>showLevelComplete(),1300);
+      }
+    }
+    if(s.life<=0) stones.splice(i,1);
+  }
+
+  // dragon collision with david
+  if(phase==='playing'&&dragonStunned<=0){
+    if(dragon.y>david.y-david.h*1.4&&Math.abs(dragon.x-david.x)<dragon.w*.45+david.w*.4){
+      loseLife();
+    }
+  }
+
+  dustClouds.forEach(d=>{d.x+=d.vx;d.y+=d.vy;d.r+=1.2;d.alpha-=.022;});
+  dustClouds=dustClouds.filter(d=>d.alpha>0);
+}
+
+// ══════════════════════════════
+// LOSE LIFE
+// ══════════════════════════════
+function loseLife(){
+  if(phase==='done') return;
+  lives--; updateHUD(); screenShake=20;
+  running=false;
+  if(lives<=0){
+    showScreen('lose-screen');
+  } else {
+    setTimeout(()=>{
+      dragon.x=dragonCX+dragonRadius; dragon.y=dragonCY;
+      dragonAngle=0; dragonStunned=60;
+      stones=[]; fireParticles=[];
+      phase='playing'; running=true; loop();
+    },800);
+  }
+}
+
+// ══════════════════════════════
+// DRAW
+// ══════════════════════════════
+function draw(){
+  const lv  = LEVELS[currentLevel];
+  const shx = screenShake>0?(Math.random()-.5)*screenShake:0;
+  const shy = screenShake>0?(Math.random()-.5)*screenShake:0;
+  ctx.save(); ctx.translate(shx,shy);
+
+  const gY = H*.80;
+
+  // sky
+  const sky=ctx.createLinearGradient(0,0,0,gY);
+  sky.addColorStop(0,lv.skyTop); sky.addColorStop(0.5,lv.skyMid); sky.addColorStop(1,lv.skyBot);
+  ctx.fillStyle=sky; ctx.fillRect(0,0,W,gY+5);
+
+  if(hitFlash>0){ ctx.fillStyle=`rgba(100,180,255,${hitFlash/20*.22})`; ctx.fillRect(0,0,W,H); }
+
+  // stars
+  stars2.forEach(s=>{
+    ctx.save(); ctx.globalAlpha=.3+Math.sin(s.twinkle)*.6;
+    ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+
+  // moon
+  ctx.save();
+  ctx.shadowColor='rgba(200,220,255,.5)'; ctx.shadowBlur=28;
+  ctx.fillStyle='#e8f0ff'; ctx.beginPath(); ctx.arc(W*.82,H*.1,Math.max(26,W*.042),0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=lv.skyTop; ctx.beginPath(); ctx.arc(W*.845,H*.085,Math.max(22,W*.036),0,Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  // god rays
+  ctx.save(); ctx.globalAlpha=.04;
+  for(let i=0;i<12;i++){
+    const ang=(i/12)*Math.PI*2;
+    ctx.fillStyle='#4488ff';
+    ctx.beginPath(); ctx.moveTo(W*.5,-H*.05);
+    ctx.lineTo(W*.5+Math.cos(ang-.06)*W*2,-H*.05+Math.sin(ang-.06)*H*2);
+    ctx.lineTo(W*.5+Math.cos(ang+.06)*W*2,-H*.05+Math.sin(ang+.06)*H*2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // bg clouds
+  bgClouds.forEach(c=>{
+    ctx.save(); ctx.globalAlpha=c.alpha; ctx.fillStyle='#5588aa';
+    drawCloud(c.x,c.y,c.w,c.h); ctx.restore();
+  });
+
+  // golden motes
+  goldenMotes.forEach(p=>{
+    ctx.save(); ctx.globalAlpha=p.alpha;
+    ctx.fillStyle='#88ccff'; ctx.shadowColor='#88ccff'; ctx.shadowBlur=6;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+
+  // hills
+  ctx.fillStyle=lv.hillColor;
+  ctx.beginPath();
+  ctx.moveTo(0,gY);
+  ctx.bezierCurveTo(W*.1,gY-H*.1,W*.28,gY-H*.16,W*.44,gY-H*.07);
+  ctx.bezierCurveTo(W*.6,gY,W*.7,gY-H*.12,W*.84,gY-H*.08);
+  ctx.bezierCurveTo(W*.93,gY-H*.04,W*.97,gY,W,gY);
+  ctx.lineTo(W,0); ctx.lineTo(0,0); ctx.fill();
+
+  // ground
+  const gg=ctx.createLinearGradient(0,gY,0,H);
+  gg.addColorStop(0,lv.groundTop); gg.addColorStop(.3,lv.groundBot); gg.addColorStop(1,lv.groundBot);
+  ctx.fillStyle=gg; ctx.fillRect(0,gY,W,H-gY);
+  ctx.fillStyle='rgba(60,120,70,.4)'; ctx.fillRect(0,gY,W,H*.012);
+
+  // ── FIRE PARTICLES ──
+  fireParticles.forEach(fp=>{
+    ctx.save();
+    ctx.globalAlpha=fp.alpha*.9;
+    ctx.fillStyle=fp.color;
+    ctx.shadowColor=fp.color; ctx.shadowBlur=18;
+    ctx.beginPath(); ctx.arc(fp.x,fp.y,fp.r,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+
+  // stones
+  stones.forEach(s=>{
+    ctx.save(); ctx.translate(s.x,s.y); ctx.rotate(s.spin);
+    const sg=ctx.createRadialGradient(-s.r*.3,-s.r*.3,0,0,0,s.r);
+    sg.addColorStop(0,'#e8d880'); sg.addColorStop(.5,'#a09028'); sg.addColorStop(1,'#3a2800');
+    ctx.fillStyle=sg; ctx.shadowColor='rgba(255,220,100,.5)'; ctx.shadowBlur=12;
+    ctx.beginPath(); ctx.arc(0,0,s.r,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+
+  // DAVID (flip based on facing)
+  ctx.save();
+  if(david.facing<0){ ctx.scale(-1,1); ctx.translate(-W,0); }
+  const dx = david.facing<0 ? W-david.x : david.x;
+  drawDavid(dx, david.y+david.bobOffset, david.w, david.h, david.slingSpin, powerVal, swordSwing);
+  ctx.restore();
+
+  // DRAGON (flip based on flight direction)
+  const dragonGoingLeft = Math.sin(dragonAngle)>0;
+  ctx.save();
+  if(dragonGoingLeft){ ctx.scale(-1,1); ctx.translate(-W,0); }
+  const drx = dragonGoingLeft ? W-dragon.x : dragon.x;
+  drawDragon(drx, dragon.y, dragon.w, dragon.h, dragonWing, dragonStunned>0, dragonHits);
+  ctx.restore();
+
+  // taunt bubble
+  if(phase==='playing'){
+    const bx=dragon.x, by=dragon.y-dragon.h*.72;
+    ctx.save();
+    ctx.font=`bold ${Math.max(11,W*.019)}px Nunito`;
+    const tw=ctx.measureText(tauntText).width;
+    const bw=tw+20,bh=32;
+    ctx.fillStyle='rgba(0,20,60,.8)';
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(bx-bw/2,by-bh/2,bw,bh,8);
+    else ctx.rect(bx-bw/2,by-bh/2,bw,bh);
+    ctx.fill();
+    ctx.fillStyle='#88ccff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(tauntText,bx,by);
+    ctx.restore();
+  }
+
+  // hit stars on dragon
+  if(dragonHits>0){
+    ctx.save();
+    ctx.font=`${Math.max(14,W*.022)}px serif`;
+    ctx.textAlign='center'; ctx.shadowColor='#FFD700'; ctx.shadowBlur=12;
+    ctx.fillText('⭐'.repeat(dragonHits), dragon.x, dragon.y-dragon.h*.9);
+    ctx.restore();
+  }
+
+  // dust
+  dustClouds.forEach(d=>{
+    ctx.save(); ctx.globalAlpha=d.alpha; ctx.fillStyle=d.color;
+    ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+
+  // win orbit stars
+  if(phase==='done'){
+    const tt=Date.now()*.003;
+    for(let i=0;i<8;i++){
+      const ang=(i/8)*Math.PI*2+tt;
+      ctx.save(); ctx.font=`${Math.max(18,W*.03)}px serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.globalAlpha=.9;
+      ctx.fillText(['⭐','✨','🌟','💫'][i%4], dragon.x+Math.cos(ang)*dragon.w*.7, dragon.y+Math.sin(ang)*dragon.h*.5);
+      ctx.restore();
+    }
+  }
+
+  ctx.restore();
+}
+
+// ══════════════════════════════
+// CLOUD
+// ══════════════════════════════
+function drawCloud(x,y,w,h){
+  ctx.beginPath(); ctx.ellipse(x+w*.5,y,w*.5,h*.5,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(x+w*.25,y+h*.06,w*.28,h*.42,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(x+w*.75,y+h*.06,w*.3,h*.44,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(x+w*.5,y+h*.12,w*.45,h*.48,0,0,Math.PI*2); ctx.fill();
+}
+
+// ══════════════════════════════
+// DRAW DAVID — with SWORD
+// ══════════════════════════════
+function drawDavid(cx,cy,w,h,slingSpin,pwr,swordAng){
+  ctx.save(); ctx.translate(cx,cy);
+
+  // shadow
+  ctx.fillStyle='rgba(0,0,0,.2)';
+  ctx.beginPath(); ctx.ellipse(0,2,w*.55,h*.035,0,0,Math.PI*2); ctx.fill();
+
+  // halo
+  ctx.save(); ctx.strokeStyle='rgba(255,215,0,.65)'; ctx.lineWidth=3;
+  ctx.shadowColor='#FFD700'; ctx.shadowBlur=14;
+  ctx.beginPath(); ctx.ellipse(0,-h*1.04,w*.27,w*.068,haloSpin,0,Math.PI*2); ctx.stroke();
+  ctx.restore();
+
+  // WADE label
+  ctx.save();
+  ctx.font=`bold ${Math.max(13,w*.55)}px Fredoka One`;
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillStyle='#FFD700'; ctx.shadowColor='rgba(0,0,0,.9)'; ctx.shadowBlur=7;
+  ctx.fillText('WADE',0,-h*1.14);
+  ctx.restore();
+
+  // legs
+  ctx.fillStyle='#7a3a10';
+  ctx.fillRect(-w*.28,-h*.5,w*.22,h*.5); ctx.fillRect(w*.06,-h*.5,w*.22,h*.5);
+  ctx.fillStyle='#4a2208';
+  ctx.fillRect(-w*.3,-h*.025,w*.26,h*.04); ctx.fillRect(w*.04,-h*.025,w*.26,h*.04);
+
+  // tunic (white/cream — holy)
+  const tg=ctx.createLinearGradient(-w*.35,-h,w*.35,-h*.4);
+  tg.addColorStop(0,'#fffde7'); tg.addColorStop(1,'#fff8d0');
+  ctx.fillStyle=tg;
+  ctx.beginPath();
+  ctx.moveTo(-w*.35,-h*.5); ctx.lineTo(-w*.3,-h*.86);
+  ctx.lineTo( w*.3,-h*.86); ctx.lineTo( w*.35,-h*.5);
+  ctx.closePath(); ctx.fill();
+
+  // belt
+  ctx.fillStyle='#c8a020'; ctx.fillRect(-w*.36,-h*.56,w*.72,h*.07);
+
+  // LEFT ARM — holding sling
+  ctx.save(); ctx.strokeStyle='#c8956c'; ctx.lineWidth=w*.17; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-w*.3,-h*.78); ctx.lineTo(-w*.52,-h*.68); ctx.stroke();
+  ctx.restore();
+
+  // RIGHT ARM — sword arm
+  ctx.save();
+  ctx.translate(w*.3,-h*.78);
+  ctx.rotate(swordAng);
+  // arm
+  ctx.strokeStyle='#c8956c'; ctx.lineWidth=w*.17; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(w*.35,-h*.12); ctx.stroke();
+
+  // ── SWORD ──
+  ctx.save();
+  ctx.translate(w*.35,-h*.12);
+  ctx.rotate(-0.5 + swordAng*0.3);
+
+  // blade
+  const bladeLen = h*.55;
+  const bladeW   = w*.045;
+  const bladeG   = ctx.createLinearGradient(0,0,bladeW,bladeLen);
+  bladeG.addColorStop(0,'#e8e8ff'); bladeG.addColorStop(0.3,'#c0c8ff'); bladeG.addColorStop(0.7,'#8899cc'); bladeG.addColorStop(1,'#445588');
+  ctx.fillStyle=bladeG;
+  ctx.shadowColor='rgba(150,180,255,0.7)'; ctx.shadowBlur=10;
+  // main blade shape
+  ctx.beginPath();
+  ctx.moveTo(-bladeW*.5, 0);
+  ctx.lineTo( bladeW*.5, 0);
+  ctx.lineTo( bladeW*.15, -bladeLen);
+  ctx.lineTo(-bladeW*.15, -bladeLen);
+  ctx.closePath(); ctx.fill();
+  // blade shine
+  ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=bladeW*.2;
+  ctx.beginPath(); ctx.moveTo(-bladeW*.1,0); ctx.lineTo(-bladeW*.05,-bladeLen*.8); ctx.stroke();
+
+  // crossguard
+  ctx.fillStyle='#c8a020'; ctx.shadowColor='rgba(255,200,0,.5)'; ctx.shadowBlur=8;
+  ctx.fillRect(-w*.15,-h*.02, w*.3, h*.04);
+  // crossguard tips
+  ctx.beginPath(); ctx.arc(-w*.15,-h*.0,w*.04,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc( w*.15,-h*.0,w*.04,0,Math.PI*2); ctx.fill();
+
+  // handle
+  ctx.fillStyle='#8B4513';
+  ctx.fillRect(-bladeW*.4, 0, bladeW*.8, h*.12);
+  // handle wrap
+  ctx.strokeStyle='#c8a020'; ctx.lineWidth=1.5;
+  for(let i=0;i<3;i++){
+    ctx.beginPath(); ctx.moveTo(-bladeW*.4, h*.03+i*h*.03); ctx.lineTo(bladeW*.4, h*.03+i*h*.03); ctx.stroke();
+  }
+  // pommel
+  ctx.fillStyle='#c8a020'; ctx.shadowBlur=6;
+  ctx.beginPath(); ctx.arc(0,h*.13,w*.055,0,Math.PI*2); ctx.fill();
+
+  ctx.restore(); // sword
+  ctx.restore(); // arm
+
+  // head
+  const hg=ctx.createRadialGradient(-w*.05,-h*.92,0,0,-h*.92,w*.24);
+  hg.addColorStop(0,'#f5d0a0'); hg.addColorStop(1,'#c8956c');
+  ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(0,-h*.92,w*.24,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#3a2000'; ctx.beginPath(); ctx.arc(0,-h*.96,w*.25,Math.PI,0); ctx.fill();
+  ctx.fillStyle='#c8a020'; ctx.fillRect(-w*.25,-h*.93,w*.5,h*.05);
+  ctx.fillStyle='#1a0800';
+  ctx.beginPath(); ctx.arc(-w*.08,-h*.92,w*.044,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc( w*.08,-h*.92,w*.044,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#3a2000'; ctx.lineWidth=w*.036;
+  ctx.beginPath(); ctx.moveTo(-w*.14,-h*.965); ctx.lineTo(-w*.03,-h*.975); ctx.moveTo(w*.14,-h*.965); ctx.lineTo(w*.03,-h*.975); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0,-h*.89,w*.075,.15,Math.PI-.15); ctx.stroke();
+
+  // sling (left hand)
+  ctx.save(); ctx.translate(-w*.52,-h*.68); ctx.rotate(.2);
+  ctx.strokeStyle='#c8a020'; ctx.lineWidth=2; ctx.setLineDash([]);
+  const sx2=Math.cos(slingSpin)*w*.3, sy2=Math.sin(slingSpin)*w*.14-w*.07;
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(sx2,sy2); ctx.stroke();
+  const pc=pwr>70?'#FF4500':pwr>40?'#FFD700':'#80cc20';
+  ctx.fillStyle=pc; ctx.shadowColor=pc; ctx.shadowBlur=pwr*.1;
+  ctx.beginPath(); ctx.arc(sx2,sy2,w*.09+pwr*.007,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  ctx.restore();
+}
+
+// ══════════════════════════════
+// DRAW DRAGON — with fire breath toward David
+// ══════════════════════════════
+function drawDragon(cx,cy,w,h,wing,stunned,hitCount){
+  ctx.save(); ctx.translate(cx,cy);
+  if(stunned) ctx.rotate(Math.sin(Date.now()*.02)*.12);
+  const wAng=wing*.55;
+
+  // wings
+  [[-1,1],[1,-1]].forEach(([flip,rflip])=>{
+    ctx.save(); ctx.translate(flip*w*.08,-h*.08); ctx.rotate(flip*(-.25+wAng*rflip));
+    const wg=ctx.createLinearGradient(0,0,flip*w*1.1,-h*.52);
+    wg.addColorStop(0,'#1a4a8a'); wg.addColorStop(.6,'#0d2a5a'); wg.addColorStop(1,'rgba(5,15,40,.2)');
+    ctx.fillStyle=wg;
+    ctx.beginPath(); ctx.moveTo(0,0);
+    ctx.bezierCurveTo(flip*w*.44,-h*.27,flip*w*1.02,-h*.46,flip*w*1.12,-h*.5);
+    ctx.bezierCurveTo(flip*w*.92,-h*.31,flip*w*.72,-h*.17,flip*w*.36,h*.08);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='rgba(50,100,200,.3)'; ctx.lineWidth=1.5;
+    for(let i=0;i<4;i++){ const f=(i+1)/5; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(flip*w*(.34+f*.72),-h*(.17+f*.31)); ctx.stroke(); }
+    ctx.restore();
+  });
+
+  // tail
+  ctx.save(); ctx.strokeStyle='#0d2a5a'; ctx.lineWidth=w*.1; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(w*.27,h*.12); ctx.bezierCurveTo(w*.62,h*.27,w*.86,h*.07,w*.96,-h*.12); ctx.stroke();
+  ctx.fillStyle='#4488ff'; ctx.beginPath(); ctx.moveTo(w*.96,-h*.12); ctx.lineTo(w*1.08,-h*.2); ctx.lineTo(w*1.02,0); ctx.fill();
+  ctx.restore();
+
+  // body
+  const bg=ctx.createRadialGradient(-w*.08,-h*.08,0,0,0,w*.44);
+  bg.addColorStop(0,'#2255aa'); bg.addColorStop(.55,'#0d2a70'); bg.addColorStop(1,'#060f35');
+  ctx.fillStyle=bg; ctx.beginPath(); ctx.ellipse(0,0,w*.44,h*.35,0,0,Math.PI*2); ctx.fill();
+  const belly=ctx.createLinearGradient(0,-h*.22,0,h*.22);
+  belly.addColorStop(0,'#88bbff'); belly.addColorStop(.5,'#5588dd'); belly.addColorStop(1,'#2244aa');
+  ctx.fillStyle=belly; ctx.beginPath(); ctx.ellipse(0,h*.06,w*.25,h*.2,0,0,Math.PI*2); ctx.fill();
+
+  // scales
+  ctx.strokeStyle='rgba(30,70,160,.4)'; ctx.lineWidth=1;
+  for(let r=0;r<3;r++) for(let c=0;c<5;c++){ ctx.beginPath(); ctx.arc(-w*.33+c*w*.16+(r%2)*w*.08,-h*.18+r*h*.14,w*.062,0,Math.PI*2); ctx.stroke(); }
+
+  // claws
+  ctx.strokeStyle='#0a1a50'; ctx.lineWidth=w*.09; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-w*.27,h*.18); ctx.lineTo(-w*.4,h*.38); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo( w*.27,h*.18); ctx.lineTo( w*.4,h*.38); ctx.stroke();
+  ctx.strokeStyle='#8899cc'; ctx.lineWidth=2;
+  [-1,0,1].forEach(i=>{ ctx.beginPath(); ctx.moveTo(-w*.4+i*w*.05,h*.38); ctx.lineTo(-w*.43+i*w*.05,h*.47); ctx.stroke(); ctx.beginPath(); ctx.moveTo(w*.4+i*w*.05,h*.38); ctx.lineTo(w*.43+i*w*.05,h*.47); ctx.stroke(); });
+
+  // neck
+  ctx.save(); ctx.strokeStyle='#1a3a80'; ctx.lineWidth=w*.19; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-w*.08,-h*.27); ctx.lineTo(-w*.23,-h*.53); ctx.stroke(); ctx.restore();
+  ctx.fillStyle='#4488ff';
+  for(let i=0;i<4;i++){ const f=i/3,nx=-w*.08+(-w*.15)*f,ny=-h*.27+(-h*.26)*f; ctx.beginPath(); ctx.moveTo(nx,ny); ctx.lineTo(nx-w*.09,ny-h*.09); ctx.lineTo(nx+w*.04,ny-h*.04); ctx.closePath(); ctx.fill(); }
+
+  // head
+  const hhg=ctx.createRadialGradient(-w*.27,-h*.58,0,-w*.25,-h*.56,w*.29);
+  hhg.addColorStop(0,'#2255bb'); hhg.addColorStop(.6,'#0d2a80'); hhg.addColorStop(1,'#060f40');
+  ctx.fillStyle=hhg; ctx.beginPath(); ctx.ellipse(-w*.25,-h*.58,w*.27,h*.185,-.2,0,Math.PI*2); ctx.fill();
+
+  // horns (gold)
+  ctx.fillStyle='#FFD700';
+  ctx.beginPath(); ctx.moveTo(-w*.15,-h*.68); ctx.lineTo(-w*.06,-h*.91); ctx.lineTo(-w*.23,-h*.72); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-w*.27,-h*.7);  ctx.lineTo(-w*.19,-h*.94); ctx.lineTo(-w*.35,-h*.74); ctx.fill();
+  ctx.fillStyle='#2244aa'; ctx.beginPath(); ctx.moveTo(-w*.05,-h*.58); ctx.lineTo(w*.02,-h*.69); ctx.lineTo(-w*.0,-h*.56); ctx.fill();
+
+  // eyes
+  ctx.save(); ctx.shadowColor=stunned?'transparent':'#00ccff'; ctx.shadowBlur=stunned?0:16;
+  ctx.fillStyle=stunned?'#334':'#00eeff';
+  ctx.beginPath(); ctx.ellipse(-w*.32,-h*.59,w*.092,h*.06,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-w*.17,-h*.59,w*.092,h*.06,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#001122';
+  ctx.beginPath(); ctx.ellipse(-w*.32,-h*.59,w*.036,h*.06,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-w*.17,-h*.59,w*.036,h*.06,0,0,Math.PI*2); ctx.fill();
+  if(!stunned){ ctx.fillStyle='rgba(255,255,255,.6)'; ctx.beginPath(); ctx.arc(-w*.34,-h*.61,w*.018,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(-w*.19,-h*.61,w*.018,0,Math.PI*2); ctx.fill(); }
+  ctx.restore();
+
+  // stunned stars
+  if(stunned){ const ss=Date.now()*.005; ['⭐','💫','✨'].forEach((e,i)=>{ const a=ss+i*2.1; ctx.font=`${Math.max(14,w*.2)}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(e,-w*.25+Math.cos(a)*w*.4,-h*.95+Math.sin(a)*h*.1); }); }
+
+  // snout
+  ctx.fillStyle='#1a3a80'; ctx.beginPath(); ctx.ellipse(-w*.41,-h*.545,w*.125,h*.072,-.16,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#0a1a50';
+  ctx.beginPath(); ctx.ellipse(-w*.47,-h*.556,w*.024,h*.02,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-w*.38,-h*.56, w*.022,h*.018,0,0,Math.PI*2); ctx.fill();
+
+  // teeth
+  ctx.fillStyle='#ddeeff';
+  for(let i=0;i<3;i++){ ctx.beginPath(); ctx.moveTo(-w*.48+i*w*.056,-h*.513); ctx.lineTo(-w*.464+i*w*.056,-h*.458); ctx.lineTo(-w*.448+i*w*.056,-h*.513); ctx.fill(); }
+
+  // ── ANIMATED FIRE CONE from mouth ──
+  if(!stunned){
+    const t   = Date.now()*.015;
+    const mouthX = -w*.54;
+    const mouthY = -h*.548;
+    const coneLen = w*.55;
+    // draw several flame tongues
+    for(let i=0;i<8;i++){
+      const f = i/7;
+      const wobble = Math.sin(t + i*1.1)*0.12;
+      const len    = coneLen*(0.5+Math.random()*.05) * (1-f*.4);
+      const spread = (f-.3)*w*.3 + Math.sin(t+i*.7)*w*.06;
+      ctx.save();
+      ctx.globalAlpha = (1-f*.7)*.85;
+      // colour shifts red→orange→yellow from base to tip
+      const r = Math.floor(255);
+      const g = Math.floor(100+f*155);
+      ctx.fillStyle = `rgb(${r},${g},0)`;
+      ctx.shadowColor = `rgb(255,${Math.floor(g*.7)},0)`;
+      ctx.shadowBlur  = 18;
+      ctx.beginPath();
+      ctx.moveTo(mouthX, mouthY);
+      ctx.quadraticCurveTo(
+        mouthX - len*.5 + spread + wobble*20,
+        mouthY - len*.2 + wobble*10,
+        mouthX - len,
+        mouthY + spread*.8
+      );
+      ctx.quadraticCurveTo(
+        mouthX - len*.6 + spread*1.2,
+        mouthY + len*.15,
+        mouthX, mouthY
+      );
+      ctx.fill();
+      ctx.restore();
+    }
+    // bright core
+    ctx.save();
+    ctx.globalAlpha=.9;
+    ctx.fillStyle='#fff8d0';
+    ctx.shadowColor='#FFD700'; ctx.shadowBlur=20;
+    ctx.beginPath(); ctx.ellipse(mouthX-w*.08, mouthY, w*.07, h*.04, -.1, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+// ══════════════════════════════
+// PARTICLES
+// ══════════════════════════════
+function spawnImpactParticles(x,y){
+  const cont=document.getElementById('particles');
+  const cols=['#FFD700','#88ccff','#ffffff','#4488ff','#ffcc00'];
+  for(let i=0;i<30;i++){
+    const p=document.createElement('div'); p.className='particle';
+    const sz=6+Math.random()*14,ang=Math.random()*Math.PI*2,dist=60+Math.random()*150;
+    p.style.cssText=`left:${x}px;top:${y}px;width:${sz}px;height:${sz}px;background:${cols[Math.floor(Math.random()*cols.length)]};--tx:${Math.cos(ang)*dist}px;--ty:${Math.sin(ang)*dist-60}px;animation-duration:${.5+Math.random()*.9}s;box-shadow:0 0 10px currentColor;`;
+    cont.appendChild(p); setTimeout(()=>p.remove(),1600);
+  }
+}
+function spawnConfetti(){
+  const cont=document.getElementById('particles');
+  const cols=['#FFD700','#4488ff','#00cc88','#ff88cc','#88aaff','#ffffff','#FF8C00'];
+  for(let i=0;i<90;i++){
+    setTimeout(()=>{
+      const c=document.createElement('div'); c.className='confetti';
+      const sz=6+Math.random()*10;
+      c.style.cssText=`left:${Math.random()*100}vw;top:-20px;width:${sz}px;height:${sz}px;background:${cols[Math.floor(Math.random()*cols.length)]};border-radius:${Math.random()>.5?'50%':'2px'};animation-duration:${2+Math.random()*2.2}s;animation-delay:${Math.random()*.5}s;`;
+      cont.appendChild(c); setTimeout(()=>c.remove(),4500);
+    },i*25);
+  }
+}
+
+// ── BOOT ──
+showScreen('intro');
+const ibg=ctx.createLinearGradient(0,0,0,H);
+ibg.addColorStop(0,'#050d1a'); ibg.addColorStop(1,'#1040aa');
+ctx.fillStyle=ibg; ctx.fillRect(0,0,W,H);
+</script>
+</body>
+</html>
